@@ -6,23 +6,34 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-TABULATION="\r\t"
+TAB="\r\t"
+FIFT_SOURCES=''
+LITE_CLIENT_SOURCES=''
+VALIDATOR_ENGINE_SOURCES=''
+
+NODE_CONTROL_SOURCES=''
+
 
 function get_ton_global_config() {
   echo -e "Processing operation: ${current_step}/${operation_steps}
-  ${TABULATION}Getting TON global config."
+  ${TAB}Getting TON global config."
   CONFIGURATION=$(curl -fsSL https://ton-blockchain.github.io/global.config.json)
-  echo "Successfully downloaded TON global config"
+  echo "Successfully downloaded TON global config."
+}
+
+function check_ton_sources_installed() {
+  echo -e "${TAB}Checking TON sources are installed."
 }
 
 function install_lite_server() {
   echo -e "Processing operation: ${current_step}/${operation_steps}
-  ${TABULATION}Installing lite server"
+  ${TAB}Installing lite server"
+  check_ton_sources_installed
 }
 
 function install_tonlib() {
   echo -e "Processing operation: ${current_step}/${operation_steps}
-  ${TABULATION}Installing tonlib"
+  ${TAB}Installing tonlib"
 }
 
 operations=(
@@ -30,7 +41,7 @@ operations=(
   install_lite_server
   install_tonlib
 )
-operation_steps=$(expr ${#operations[@]} + 1)
+operation_steps=$(expr ${#operations[@]})
 
 for index in ${!operations[*]}
   do
