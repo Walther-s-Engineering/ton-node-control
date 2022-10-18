@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ton-node-control"
-version = "0.1.0"
+version = "0.0.1"
 description = ""
 authors = ["Alexander Walther <asushofman@gmail.com>"]
 license = "GPL-3.0"
