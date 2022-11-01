@@ -3,7 +3,6 @@ authors = ["Alexander Walther <asushofman@gmail.com>"]
 classifiers = [
     'Development Status :: 1 - Planning',
     'Environment :: Console',
-    'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Operating System :: POSIX :: Linux',
@@ -30,7 +29,7 @@ version = "0.0.1"
 python = "^3.10"
 click = "8.1.3"
 toml = "0.10.2"
-pytest = "7.1.3"
+pytest = "7.2.0"
 PyYAML = "6.0"
 mypy = "0.982"
 
