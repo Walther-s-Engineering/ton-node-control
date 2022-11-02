@@ -464,7 +464,7 @@ class Installer:
                 break
         if current_version == version and self._force is False:
             self._write(
-                f'The latest version ({colorize("b", version)}) is already installed.',
+                f'The latest version ({colorize("bold", version)}) is already installed.',
             )
             return None, current_version
         return version, current_version
@@ -515,8 +515,12 @@ class Installer:
         target_script = env.binaries_path.joinpath(script)
         if self.binaries_dir.joinpath(script).exists():
             self.binaries_dir.joinpath(script).unlink()
-
-        self.binaries_dir.joinpath(script).symlink_to(target_script)
+        symlink = self.binaries_dir.joinpath(script)
+        try:
+            symlink.symlink_to(target_script)
+        except FileExistsError:
+            symlink.unlink(missing_ok=True)
+            self.make_binary(version, env)
 
     def install_ton_node_control(self, version: String, env: VirtualEnvironment) -> None:
         self._install_comment(version, 'Installing "ton-node-control"')
@@ -552,7 +556,13 @@ class Installer:
                 return_code=err.returncode,
             ) from err
         self._write('')
-        self._write(colorize('info', 'Installed'))
+        self._write(
+            colorize(
+                'success',
+                f'Successfully installed {colorize("bold", "ton-node-control")} '
+                f'({colorize("bold", version)})',
+            ),
+        )
         return 0
 
     def install(self, version: String) -> Integer:
