@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# Partially copied from https://github.com/python-poetry/install.python-poetry.org
 from __future__ import annotations
 
 import argparse
