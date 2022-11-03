@@ -1,9 +1,7 @@
 import sys
 
-import click
+from ton_node_control.app import app
 
-import ton_node_control
 
 if __name__ == '__main__':
-    cli = click.CommandCollection(sources=[ton_node_control.app.main, ton_node_control.app.wallet_commands])
-    sys.exit(cli())
+    sys.exit(app())

@@ -18,6 +18,7 @@ import tempfile
 import typing as t
 import urllib.request
 
+from datetime import datetime
 
 if sys.version_info < (3, 8):
     print(
@@ -164,87 +165,26 @@ def binary_directory() -> pathlib.Path:
     return pathlib.Path(bin_dir)
 
 
+def ton_binary_directory() -> pathlib.Path:
+    if TON_NODE_CONTROL_HOME is not None:
+        return pathlib.Path(TON_NODE_CONTROL_HOME).expanduser()
+
+    if MACOS is True:
+        path = os.path.expanduser('~/Library/Application Support/ton-node-control')
+    else:
+        path = os.getenv('XDG_DATA_HOME', os.path.expanduser('~/.local/share'))
+        path = os.path.join(path, 'ton-node-control')
+
+    bin_dir = os.path.join(path, 'bin')
+    return pathlib.Path(bin_dir)
+
+
+# Installing instances
 class TonNodeControlInstallationError(RuntimeError):
     def __init__(self, return_code: Integer = 0, log: t.Optional[String] = None) -> None:
         super().__init__()
         self.return_code: Integer = return_code
         self.log: t.Optional[String] = log
-
-
-class VirtualEnvironment:
-    def __init__(self, path: pathlib.Path) -> None:
-        self._path: pathlib.Path = path
-        self._binaries_path: pathlib.Path = self._path.joinpath('bin')
-        self._python: String = str(self._path.joinpath(self._binaries_path, 'python'))
-
-    @property
-    def path(self) -> pathlib.Path:
-        return self._path
-    
-    @property
-    def binaries_path(self) -> pathlib.Path:
-        return self._binaries_path
-    
-    @classmethod
-    def make(cls, target: pathlib.Path) -> VirtualEnvironment:
-        if sys.executable is None:
-            raise ValueError(
-                "Unable to determine sys.executable. "
-                "Set PATH to a sane value or set it explicitly with PYTHONEXECUTABLE.",
-            )
-        try:
-            # on some linux distributions (eg: debian), the distribution provided python
-            # installation might not include ensurepip, causing the venv module to
-            # fail when attempting to create a virtual environment
-            # we import ensurepip but do not use it explicitly here
-            import ensurepip  # noqa: F401
-            import venv
-
-            builder = venv.EnvBuilder(clear=True, with_pip=True, symlinks=False)
-            builder.ensure_directories(target)
-            builder.create(target)
-        except ImportError:
-            python_version = f'{sys.version_info.major}.{sys.version_info.minor}'
-            virtual_env_bootstrap_url: String = (
-                f"https://bootstrap.pypa.io/virtualenv/{python_version}/virtualenv.pyz"
-            )
-            with tempfile.TemporaryDirectory(prefix='tnc-installer') as temp_dir:
-                virtualenv_pyz = pathlib.Path(temp_dir) / 'virtualenv.pyz'
-                request = urllib.request.Request(
-                    virtual_env_bootstrap_url,
-                    headers={'User-Agent': 'ton-node-control'},
-                )
-                with contextlib.closing(urllib.request.urlopen(request)) as response:
-                    virtualenv_pyz.write_bytes(response.read())
-                cls.run(
-                    sys.executable, virtualenv_pyz, '--clear', '--always-copy', target,
-                )
-        target.joinpath('tnc_env').touch()
-        env: VirtualEnvironment = cls(target)
-
-        env.pip('install', '--disable-pip-version-check', '--upgrade', 'pip')
-        return env
-    
-    @staticmethod
-    def run(*args, **kwargs) -> subprocess.CompletedProcess:
-        process = subprocess.run(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            **kwargs,
-        )
-        if process.returncode != 0:
-            raise TonNodeControlInstallationError(
-                log=process.stdout.decode(),
-                return_code=process.returncode,
-            )
-        return process
-
-    def python(self, *args, **kwargs) -> subprocess.CompletedProcess:
-        return self.run(self._python, *args, **kwargs)
-
-    def pip(self, *args, **kwargs) -> subprocess.CompletedProcess:
-        return self.python('-m', 'pip', *args, **kwargs)
 
 
 class Cursor:
@@ -335,8 +275,85 @@ class Cursor:
         return self
 
 
+class VirtualEnvironment:
+    def __init__(self, path: pathlib.Path) -> None:
+        self._path: pathlib.Path = path
+        self._binaries_path: pathlib.Path = self._path.joinpath('bin')
+        self._python: String = str(self._path.joinpath(self._binaries_path, 'python'))
+
+    @property
+    def path(self) -> pathlib.Path:
+        return self._path
+    
+    @property
+    def binaries_path(self) -> pathlib.Path:
+        return self._binaries_path
+    
+    @classmethod
+    def make(cls, target: pathlib.Path) -> VirtualEnvironment:
+        if sys.executable is None:
+            raise ValueError(
+                "Unable to determine sys.executable. "
+                "Set PATH to a sane value or set it explicitly with PYTHONEXECUTABLE.",
+            )
+        try:
+            # on some linux distributions (eg: debian), the distribution provided python
+            # installation might not include ensurepip, causing the venv module to
+            # fail when attempting to create a virtual environment
+            # we import ensurepip but do not use it explicitly here
+            import ensurepip  # noqa: F401
+            import venv
+
+            builder = venv.EnvBuilder(clear=True, with_pip=True, symlinks=False)
+            builder.ensure_directories(target)
+            builder.create(target)
+        except ImportError:
+            python_version = f'{sys.version_info.major}.{sys.version_info.minor}'
+            virtual_env_bootstrap_url: String = (
+                f"https://bootstrap.pypa.io/virtualenv/{python_version}/virtualenv.pyz"
+            )
+            with tempfile.TemporaryDirectory(prefix='tnc-installer') as temp_dir:
+                virtualenv_pyz = pathlib.Path(temp_dir) / 'virtualenv.pyz'
+                request = urllib.request.Request(
+                    virtual_env_bootstrap_url,
+                    headers={'User-Agent': 'ton-node-control'},
+                )
+                with contextlib.closing(urllib.request.urlopen(request)) as response:
+                    virtualenv_pyz.write_bytes(response.read())
+                cls.run(
+                    sys.executable, virtualenv_pyz, '--clear', '--always-copy', target,
+                )
+        target.joinpath('tnc_env').touch()
+        env: VirtualEnvironment = cls(target)
+
+        env.pip('install', '--disable-pip-version-check', '--upgrade', 'pip')
+        return env
+    
+    @staticmethod
+    def run(*args, **kwargs) -> subprocess.CompletedProcess:
+        process = subprocess.run(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            **kwargs,
+        )
+        if process.returncode != 0:
+            raise TonNodeControlInstallationError(
+                log=process.stdout.decode(),
+                return_code=process.returncode,
+            )
+        return process
+
+    def python(self, *args, **kwargs) -> subprocess.CompletedProcess:
+        return self.run(self._python, *args, **kwargs)
+
+    def pip(self, *args, **kwargs) -> subprocess.CompletedProcess:
+        return self.python('-m', 'pip', *args, **kwargs)
+
+
 class Installer:
     MEDATA_URL: String = 'https://pypi.org/pypi/ton-node-control/json'
+    TON_MEDATA_URL: String = 'https://api.github.com/repos/ton-blockchain/ton/commits'
     VERSION_REGEX = re.compile(
         r"v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?"
         "("
@@ -346,7 +363,8 @@ class Installer:
         ")?"
         r"(?:\+[^\s]+)?"
     )
-    
+    COMMIT_REGEX = re.compile(r'[0-9a-fA-F]{40}')
+
     def __init__(
         self,
         force: Bool = False,
@@ -359,12 +377,16 @@ class Installer:
         self._accept_all: Bool = accept_all
         self._git: t.Optional[String] = git
         self._version: t.Optional[String] = version
+        # FIXME: Add variant to install specified commit of "ton-blockchain"
+        self._ton_version: t.Optional[String] = None
         self._preview: Bool = preview
 
         self._cursor = Cursor()
         self._module_dir: pathlib.Path = module_directory()
         self._binaries_dir: pathlib.Path = binary_directory()
+        self._ton_binaries_dir: pathlib.Path = binary_directory()
         self._meta_data: t.Dict[t.Any, t.Any] = {}
+        self._ton_meta_data: t.Dict[t.Any, t.Any] = {}
 
     @property
     def binaries_dir(self) -> pathlib.Path:
@@ -381,6 +403,10 @@ class Installer:
     @property
     def version_file(self) -> pathlib.Path:
         return self.module_dir.joinpath('VERSION')
+
+    @property
+    def ton_version_file(self) -> pathlib.Path:
+        return self._ton_binaries_dir.joinpath('VERSION')
 
     def _get(self, url: String) -> Bytes:
         request = urllib.request.Request(url, headers={'User-Agent': 'ton-node-control'})
@@ -425,8 +451,8 @@ class Installer:
             ),
         )
         self._meta_data = json.loads(self._get(self.MEDATA_URL).decode())
-        
-        def _compare_versions(current, lookup):
+
+        def _compare_versions(current: String, lookup: String) -> Integer:
             version_current: re.Match = self.VERSION_REGEX.match(current)
             version_lookup: re.Match = self.VERSION_REGEX.match(lookup)
             version_current: tuple = tuple(
@@ -442,18 +468,17 @@ class Installer:
             if version_current > version_lookup:
                 return 1
             return 0
-        
+
         self._write('')
         releases = sorted(
             self._meta_data['releases'].keys(),
             key=functools.cmp_to_key(_compare_versions),
         )
-        
         if self._version is not None and self._version not in releases:
-            message = f'Version {self._version} does not exist.'
-            self._write(colorize('error', message))
-            raise ValueError(colorize('error', message))
-        
+            message = colorize('error', f'Version {self._version} does not exist.')
+            self._write(message)
+            raise ValueError(message)
+
         version = self._version
         if version is None:
             for release in reversed(releases):
@@ -468,6 +493,67 @@ class Installer:
             )
             return None, current_version
         return version, current_version
+
+    def get_ton_meta_data(self) -> t.Tuple[t.Optional[String], t.Optional[String]]:
+        try:
+            date: t.Optional[String] = None
+            current_version: t.Optional[String] = None
+            if self.ton_version_file.exists():
+                current_version, date = self.ton_version_file.read_text().strip().split(':')
+                date: datetime = datetime.fromisoformat(date)
+            self._write(
+                colorize(
+                    'info',
+                    'Retrieving "ton-blockchain" meta-data',
+                ),
+            )
+            self._ton_meta_data = dict(
+                versions=json.loads(self._get(self.TON_MEDATA_URL).decode()),
+            )
+            self._write('')
+            releases: t.List[t.Dict[String, t.Any]] = [
+                version for version in reversed(self._ton_meta_data['versions'])
+            ]
+            commits: t.List[String] = [_version['sha'] for _version in releases]
+            if self._ton_version is not None and self._ton_version not in commits:
+                message = colorize('error', f'Version {self._ton_version} does not exist.')
+                self._write(message)
+                raise ValueError(message)
+            
+            if date is None and current_version is None:
+                self._write(
+                    colorize(
+                        'warning',
+                        'No installed versions of "ton-blockchain" '
+                        'was found, will use latest.',
+                    ),
+                )
+                version = commits.pop()
+                return version, current_version
+            version = self._ton_version
+            if version is None:
+                version = commits.pop()
+            # version: String = self._ton_version
+            # latest_version = next(
+            #     _version for _version in releases
+            #     if datetime.fromisoformat(
+            #         _version['commit']['author']['date'].strip('Z'),
+            #     ) > date
+            # )
+            # print(latest_version)
+            # return None, latest_version
+            # else:
+            #     latest_version = releases.pop()['sha']
+            #     if current_version == version and self._force is False:
+            #         self._write(
+            #             f'The latest version ({colorize("bold", version)}) is already installed.',
+            #         )
+            #     return None, current_version
+        except Exception as err:
+            import traceback
+            traceback.print_exc()
+            print(err)
+
 
     @contextlib.contextmanager
     def make_environment(self, version: String) -> VirtualEnvironment:
@@ -530,6 +616,20 @@ class Installer:
             specification = f'ton-node-control=={version}'
         env.pip('install', specification)
 
+    def install_ton(self) -> None:
+        self._overwrite(colorize(
+            'info',
+            f'Retrieving "ton-blockchain" meta-data',
+        ))
+        self._ton_meta_data = dict(commits=json.loads(self._get(self.TON_MEDATA_URL)))
+        # if self._ton_version is None:
+        #     version
+        import time
+        time.sleep(5)
+
+    def _install_fift(self) -> None:
+        pass
+
     def run(self) -> Integer:
         if self._git is True:
             version = self._git
@@ -540,7 +640,12 @@ class Installer:
                 return 1
         if version is None:
             return 0
-        
+        try:
+            ton_version, ton_current_version = self.get_ton_meta_data()
+        except Exception:
+            return 1
+        if ton_version is None:
+            return 0
         self._write(
             PRE_MESSAGE.format(
                 ton_node_control=colorize('info', 'ton-node-control'),
@@ -577,6 +682,7 @@ class Installer:
         )
         with self.make_environment(version) as env:
             self.install_ton_node_control(version, env)
+            self.install_ton()
             self.make_binary(version, env)
             self.version_file.write_text(version)
             self._install_comment(version, 'Done')
