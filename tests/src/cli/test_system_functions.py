@@ -1,4 +1,4 @@
-from ton_node_control.cli.system import get_cpu_count
+from ton_node_control.cli.utils.system import get_cpu_count
 
 
 class TestSystem:
