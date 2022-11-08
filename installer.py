@@ -5,10 +5,12 @@ from __future__ import annotations
 import argparse
 import contextlib
 import functools
+import getpass
 import io
 import json
 import os
 import pathlib
+import platform
 import shutil
 import site
 import subprocess
@@ -51,20 +53,21 @@ except AttributeError:
 SHELL: String = os.getenv('SHELL', '')
 WINDOWS = sys.platform.startswith('win') or (sys.platform == 'cli' and os.name == 'nt')
 MACOS = sys.platform == 'darwin'
+
 TON_NODE_CONTROL_HOME = os.getenv('TON_NODE_CONTROL_HOME')
 TON_BUILD_REQUIREMENTS = [
+    'build-essential',
     'git',
     'make',
     'cmake',
     'clang',
-    'pkg-config',
     'libgflags-dev',
     'zlib1g-dev',
     'libssl-dev',
     'libreadline-dev',
     'libmicrohttpd-dev',
+    'pkg-config',
     'libgsl-dev',
-    'libmicrohttpd-dev',
     'python3',
     'python3-dev',
     'python3-pip',
@@ -118,7 +121,7 @@ def style(
 
 STYLES = dict(
     info=style('cyan'),
-    comment=style('yellow'),
+    comment=style('white'),
     success=style('green'),
     error=style('red'),
     warning=style('yellow'),
@@ -196,6 +199,47 @@ def ton_binary_directory() -> pathlib.Path:
 
     bin_dir = os.path.join(path, 'bin')
     return pathlib.Path(bin_dir)
+
+
+def prompt_sudo_password() -> t.Optional[String]:
+    if MACOS is True:
+        dependencies = colorize('info', 'brew install ')
+    else:
+        dependencies = colorize('info', 'sudo apt-get install ')
+    dependencies += ' '.join(TON_BUILD_REQUIREMENTS)
+    if os.getuid() != 0:
+        write_styled_stdout(
+            'warning',
+            'The installer is not running with superuser privileges.\n'
+            'But during the installation process it will be necessary.\n'
+            'You can enter your superuser password, '
+            'or you can install the packages yourself.\n'
+            f'Packages required for installation:',
+        )
+        sys.stdout.write('\t' + dependencies + '\n')
+        use_installer: Bool = string_to_bool(input('Use installer?\n Answer: '))
+        if use_installer is True:
+            write_styled_stdout(
+                'warning',
+                'The installer will be used to install the required packages.'
+            )
+            password: String = getpass.getpass(' Type your password: ')
+            return password
+        return None
+    return None
+
+
+def prompt_package_installation() -> Bool:
+    if MACOS is True:
+        dependencies = colorize('info', 'brew install ')
+    else:
+        dependencies = colorize('info', 'sudo apt-get install ')
+    dependencies += ' '.join(TON_BUILD_REQUIREMENTS)
+    write_styled_stdout(
+        'warning',
+        'Make sure you have installed the required packages for the installation.'
+    )
+    return string_to_bool(input('Proceed?\n Answer: '))
 
 
 # Installing instances
@@ -388,6 +432,7 @@ class Compiler(Builder):
     @classmethod
     def make(cls, target: pathlib.Path) -> Compiler:
         compiler: Compiler = cls(target)
+        compiler.apt_update()
         for requirement in TON_BUILD_REQUIREMENTS:
             path: t.Optional[String] = shutil.which(requirement)
             if path is None:
@@ -397,12 +442,15 @@ class Compiler(Builder):
         os.environ.setdefault('CCACHE_DISABLE', '1')
         return compiler
     
+    def apt_update(self, *args, **kwargs) -> subprocess.CompletedProcess:
+        return self.run('apt-get', 'update', '-y', *args, **kwargs)
+
     def apt_get(self, *args, **kwargs) -> subprocess.CompletedProcess:
-        return self.run('sudo', 'apt-get', 'install', '-y', *args, **kwargs)
+        return self.run('apt-get', 'install', '-y', *args, **kwargs)
     
     def cmake(self, *args, **kwargs) -> subprocess.CompletedProcess:
         return self.run(
-            'cmake', '-DCMAKE_BUILD_TYPE=Release', '-Wno-dev', '-B', self.path,
+            'cmake', '-DCMAKE_BUILD_TYPE=Release', '-B', self.path,
             *args, **kwargs,
         )
 
@@ -432,6 +480,7 @@ class Installer:
         git: t.Optional[String] = None,
         version: t.Optional[String] = None,
         ton_version: t.Optional[String] = None,
+        superuser_password: t.Optional[String] = None,
         preview: Bool = False,
     ) -> None:
         self._force: Bool = force
@@ -440,6 +489,7 @@ class Installer:
         self._version: t.Optional[String] = version
         self._ton_version: t.Optional[String] = ton_version
         self._preview: Bool = preview
+        self._superuser_password: t.Optional[String] = superuser_password
 
         self._cursor = Cursor()
         self._module_dir: pathlib.Path = module_directory()
@@ -677,7 +727,7 @@ class Installer:
             shutil.move(self.ton_binaries_dir, sources_backup_path)
         try:
             self._install_comment(
-                self.ton_version,
+                version,
                 'Preparing "ton-blockchain" sources to compilation',
             )
             yield Compiler.make(self.ton_binaries_dir)
@@ -851,11 +901,6 @@ def main() -> Integer:
             colorize('bold', 'Windows system is not supported yet.'),
         )
         return 1
-    #
-    # if os.getuid() != 0:
-    #     # FIXME: Improve language and information
-    #     write_styled_stdout('error', 'You have to run this script as sudo to proceed.')
-    #     return 1
 
     parser = argparse.ArgumentParser(
         description='Installs the latest (or given) version of "ton-node-control".',
@@ -892,14 +937,25 @@ def main() -> Integer:
         help='uninstall ton-node-control',
     )
     args: argparse.Namespace = parser.parse_args()
+
+    superuser_password: t.Optional[String] = prompt_sudo_password()
+    proceed: Bool = prompt_package_installation()
+    if proceed is False:
+        write_styled_stdout(
+            'info',
+            'Installation process stopped.\n'
+        )
+        return 13
+
+    write_styled_stdout('info', '\nStarting installation process.\n')
     installer = Installer(
         accept_all=args.accept_all,
         force=args.force,
         git=args.git,
         version=args.version,
         ton_version=args.ton_version,
+        superuser_password=superuser_password,
     )
-
     if args.uninstall is True:
         return installer.uninstall()
     try:
@@ -921,6 +977,7 @@ def main() -> Integer:
                 f'{err.log}\n'
                 f'Traceback:\n\n{str().join(traceback.format_tb(err.__traceback__))}',
             )
+            print(str().join(traceback.format_tb(err.__traceback__)))
         return err.return_code
 
 
