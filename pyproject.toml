@@ -1,5 +1,5 @@
 [tool.poetry]
-authors = ["Alexander Walther <asushofman@gmail.com>"]
+authors = ["Alexander Walther <alexander.walther.engineering@gmail.com>"]
 classifiers = [
     'Development Status :: 1 - Planning',
     'Environment :: Console',

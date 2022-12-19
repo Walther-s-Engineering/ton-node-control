@@ -10,7 +10,6 @@ import io
 import json
 import os
 import pathlib
-import platform
 import shutil
 import site
 import subprocess
@@ -26,28 +25,33 @@ from datetime import datetime
 
 if sys.version_info < (3, 8):
     print(
-        '\033[0;31mThis module cannot be used with a version of "Python" below 3.10.\n'
+        '\033[0;31mThis module cannot be used with a version of "Python" below 3.8.\n'
         f'You are using version {sys.version_info.major}.{sys.version_info.minor}\033[0m',
     )
     sys.exit(1)
 
-# Typing
 try:
     Bool: t.TypeAlias = bool
     Bytes: t.TypeAlias = bytes
     String: t.TypeAlias = str
     Integer: t.TypeAlias = int
-    
+    Self = t.Self
+
     # Styling typing
     STYLE: t.Literal['info', 'comment', 'success', 'error', 'warning']
     COLOR: t.Literal['black', 'blue', 'cyan', 'green', 'magenta', 'red', 'white', 'yellow']
     OPTION: t.Literal['bold', 'underscore', 'blink', 'reverse', 'conceal']
 
-except AttributeError:
+except (AttributeError, ModuleNotFoundError, ImportError):
     Bool = t.TypeVar('Bool', bound=bool)  # noqa: *, 811
     Bytes = t.TypeVar('Bytes', bound=bool)  # noqa: *, 811
     String = t.TypeVar('String', bound=str)  # noqa: *, 811
     Integer = t.TypeVar('Integer', bound=int)  # noqa: *, 811
+    STYLE = t.TypeVar('STYLE')
+    COLOR = t.TypeVar('COLOR')
+    OPTION = t.TypeVar('OPTION')
+    Self = t.TypeVar('Self')
+
 
 # Installation required variables
 SHELL: String = os.getenv('SHELL', '')
@@ -166,10 +170,20 @@ and these changes will be reverted.
 """
 
 
+def get_ton_node_control_home(*targets: t.Optional[String]) -> pathlib.Path:
+    if not targets:
+        return pathlib.Path(TON_NODE_CONTROL_HOME).expanduser()
+    return pathlib.Path(TON_NODE_CONTROL_HOME, *targets).expanduser()
+
+
+def get_input(prompt: String) -> String:
+    return input(prompt)
+
+
 # Path and system operations
 def module_directory() -> pathlib.Path:
     if TON_NODE_CONTROL_HOME is not None:
-        return pathlib.Path(TON_NODE_CONTROL_HOME).expanduser()
+        return get_ton_node_control_home()
     
     if MACOS is True:
         path = os.path.expanduser('~/Library/Application Support/ton-node-control')
@@ -181,7 +195,7 @@ def module_directory() -> pathlib.Path:
 
 def binary_directory() -> pathlib.Path:
     if TON_NODE_CONTROL_HOME is not None:
-        return pathlib.Path(TON_NODE_CONTROL_HOME, 'bin').expanduser()
+        return get_ton_node_control_home('bin')
     user_base: String = site.getuserbase()
     bin_dir = os.path.join(user_base, 'bin')
     return pathlib.Path(bin_dir)
@@ -189,7 +203,7 @@ def binary_directory() -> pathlib.Path:
 
 def ton_binary_directory() -> pathlib.Path:
     if TON_NODE_CONTROL_HOME is not None:
-        return pathlib.Path(TON_NODE_CONTROL_HOME).expanduser()
+        return get_ton_node_control_home()
 
     if MACOS is True:
         path = os.path.expanduser('~/Library/Application Support/ton-node-control')
@@ -199,6 +213,17 @@ def ton_binary_directory() -> pathlib.Path:
 
     bin_dir = os.path.join(path, 'bin')
     return pathlib.Path(bin_dir)
+
+
+def prompt_use_installer() -> t.Optional[String]:
+    use_installer: Bool = string_to_bool(get_input('Use installer?\n Answer: '))
+    if use_installer is True:
+        write_styled_stdout(
+            'warning',
+            'The installer will be used to install the required packages.'
+        )
+        password: String = getpass.getpass(' Type your password: ')
+        return password
 
 
 def prompt_sudo_password() -> t.Optional[String]:
@@ -216,16 +241,15 @@ def prompt_sudo_password() -> t.Optional[String]:
             'or you can install the packages yourself.\n'
             f'Packages required for installation:',
         )
-        sys.stdout.write('\t' + dependencies + '\n')
-        use_installer: Bool = string_to_bool(input('Use installer?\n Answer: '))
-        if use_installer is True:
-            write_styled_stdout(
-                'warning',
-                'The installer will be used to install the required packages.'
-            )
-            password: String = getpass.getpass(' Type your password: ')
-            return password
-        return None
+        sys.stdout.write('>>>\t' + dependencies + '\n')
+    use_installer: Bool = string_to_bool(get_input('Use installer?\n Answer: '))
+    if use_installer is True:
+        write_styled_stdout(
+            'warning',
+            'The installer will be used to install the required packages.'
+        )
+        password: String = getpass.getpass(' Type your password: ')
+        return password
     return None
 
 
@@ -239,10 +263,9 @@ def prompt_package_installation() -> Bool:
         'warning',
         'Make sure you have installed the required packages for the installation.'
     )
-    return string_to_bool(input('Proceed?\n Answer: '))
+    return string_to_bool(get_input('Proceed?\n Answer: '))
 
 
-# Installing instances
 class TonNodeControlInstallationError(RuntimeError):
     def __init__(self, return_code: Integer = 0, log: t.Optional[String] = None) -> None:
         super().__init__()
@@ -432,21 +455,40 @@ class Compiler(Builder):
     @classmethod
     def make(cls, target: pathlib.Path) -> Compiler:
         compiler: Compiler = cls(target)
-        compiler.apt_update()
-        for requirement in TON_BUILD_REQUIREMENTS:
-            path: t.Optional[String] = shutil.which(requirement)
-            if path is None:
-                compiler.apt_get(requirement)
         os.environ.setdefault('CC', shutil.which('clang'))
         os.environ.setdefault('CXX', shutil.which('clang++'))
         os.environ.setdefault('CCACHE_DISABLE', '1')
         return compiler
-    
-    def apt_update(self, *args, **kwargs) -> subprocess.CompletedProcess:
-        return self.run('apt-get', 'update', '-y', *args, **kwargs)
 
-    def apt_get(self, *args, **kwargs) -> subprocess.CompletedProcess:
-        return self.run('apt-get', 'install', '-y', *args, **kwargs)
+    def packages_update(
+        self,
+        superuser_password: String,
+        *args,
+        **kwargs,
+    ) -> subprocess.CompletedProcess:
+        raise ValueError('FIX PASSWORD USAGE', superuser_password)
+        if MACOS is True:
+            return self.run('brew', 'update', '-y', *args, **kwargs)
+        return self.run(
+            f'sudo -S <<< "{superuser_password}"', 'apt-get', 'update', '-y',
+            *args,
+            **kwargs,
+        )
+
+    def packages_get(
+        self,
+        superuser_password: String,
+        *args,
+        **kwargs,
+    ) -> subprocess.CompletedProcess:
+        raise ValueError('FIX PASSWORD USAGE', superuser_password)
+        if MACOS is True:
+            return self.run('brew', 'install', '-y', *args, **kwargs)
+        return self.run(
+            f'sudo -S <<< "{superuser_password}"', 'apt-get', 'install', '-y',
+            *args,
+            **kwargs,
+        )
     
     def cmake(self, *args, **kwargs) -> subprocess.CompletedProcess:
         return self.run(
@@ -656,6 +698,7 @@ class Installer:
             version = self._ton_version
             if version is None:
                 version = commits.pop()
+            # FIXME: Fix this code block
             raise NotImplementedError('FIXME')
         except Exception as err:
             import traceback
@@ -768,6 +811,17 @@ class Installer:
             ),
         )
         with self.make_compiler(truncated_version) as compiler:
+            if self._superuser_password is not None:
+                compiler.packages_update(superuser_password=self._superuser_password)
+                for requirement in TON_BUILD_REQUIREMENTS:
+                    self._install_comment(
+                        truncated_version,
+                        colorize(
+                            'info',
+                            f'Installing ton-blockchain dependency "{requirement}"',
+                        ),
+                    )
+                    compiler.packages_get(self._superuser_password, requirement)
             self.compile_ton_sources(truncated_version, compiler)
         time.sleep(5)
 
@@ -787,7 +841,7 @@ class Installer:
             )
             tarfile.open(file.name).extractall(tarball_path)
             os.remove(archive_path)
-            sources_dir: String = os.listdir(tarball_path).pop()
+            sources_dir: String = t.cast(String, os.listdir(tarball_path).pop())
             sources_path: pathlib.Path = tarball_path.joinpath(sources_dir)
             self._compile_ton(version, compiler, sources_path)
 
@@ -936,16 +990,29 @@ def main() -> Integer:
         default=False,
         help='uninstall ton-node-control',
     )
+    parser.add_argument(
+        '--use-installer',
+        action='store_true',
+        dest='use_installer',
+        default=False,
+        help=''
+    )
     args: argparse.Namespace = parser.parse_args()
 
     superuser_password: t.Optional[String] = prompt_sudo_password()
-    proceed: Bool = prompt_package_installation()
-    if proceed is False:
+    if superuser_password is None:
         write_styled_stdout(
-            'info',
-            'Installation process stopped.\n'
+            'error',
+            'If you want to run installer without prompting super-user password '
+            'run it with super-user privileges.',
         )
-        return 13
+        proceed: Bool = prompt_package_installation()
+        if proceed is False:
+            write_styled_stdout(
+                'info',
+                'Installation process stopped.\n'
+            )
+            return 13
 
     write_styled_stdout('info', '\nStarting installation process.\n')
     installer = Installer(
@@ -982,4 +1049,8 @@ def main() -> Integer:
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        write_styled_stdout('info', '\nExited.')
+        sys.exit(0)
