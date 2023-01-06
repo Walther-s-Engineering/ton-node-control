@@ -56,3 +56,12 @@ class Compiler(Builder):
     
     def make_build(self, *args, **kwargs) -> subprocess.CompletedProcess:
         return self.run('make', '-j', os.cpu_count(), *args, **kwargs)
+
+    def git(self, *args, **kwargs) -> subprocess.CompletedProcess:
+        return self.run('git', *args, **kwargs)
+
+    def git_clone(self, *args, **kwargs) -> subprocess.CompletedProcess:
+        return self.git('clone', *args, **kwargs)
+
+    def git_reset(self, *args, **kwargs) -> subprocess.CompletedProcess:
+        return self.git('reset', '--hard', *args, **kwargs)

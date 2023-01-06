@@ -363,24 +363,25 @@ class Installer:
         time.sleep(5)
     
     def compile_ton_sources(self, version: String, compiler: Compiler) -> None:
-        data: Bytes = self._get(self.TON_SOURCES_URL.format(version=version))
         with tempfile.TemporaryDirectory(prefix='ton-blockchain-installer') as temp_dir:
-            tarball_path = pathlib.Path(temp_dir)
-            archive_path: pathlib.Path = tarball_path.joinpath('sources.tar.gz')
-            with open(archive_path, 'w+b') as file:
-                file.write(data)
-            self._install_comment(
-                version,
-                colorize(
-                    'info',
-                    f'Unpacking "ton-blockchain" sources to compile',
-                ),
-            )
-            tarfile.open(file.name).extractall(tarball_path)
-            os.remove(archive_path)
-            sources_dir: String = t.cast(String, os.listdir(tarball_path).pop())
-            sources_path: pathlib.Path = tarball_path.joinpath(sources_dir)
-            self._compile_ton(version, compiler, sources_path)
+            compiler.git_clone('git@github.com:ton-blockchain/ton.git', '--recursive', temp_dir)
+            print(os.listdir(temp_dir))
+        #     tarball_path = pathlib.Path(temp_dir)
+        #     archive_path: pathlib.Path = tarball_path.joinpath('sources.tar.gz')
+        #     with open(archive_path, 'w+b') as file:
+        #         file.write(data)
+        #     self._install_comment(
+        #         version,
+        #         colorize(
+        #             'info',
+        #             f'Unpacking "ton-blockchain" sources to compile',
+        #         ),
+        #     )
+        #     tarfile.open(file.name).extractall(tarball_path)
+        #     os.remove(archive_path)
+        #     sources_dir: String = t.cast(String, os.listdir(tarball_path).pop())
+        #     sources_path: pathlib.Path = tarball_path.joinpath(sources_dir)
+        #     self._compile_ton(version, compiler, sources_path)
     
     def _compile_ton(
         self,
