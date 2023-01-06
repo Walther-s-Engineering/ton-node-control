@@ -349,7 +349,7 @@ class Installer:
         )
         with self.make_compiler(truncated_version) as compiler:
             if self._superuser_password is not None:
-                compiler.packages_update(input=self._superuser_password)
+                compiler.packages_update(input=self._superuser_password.encode())
                 for requirement in TON_BUILD_REQUIREMENTS:
                     self._install_comment(
                         truncated_version,
@@ -358,7 +358,7 @@ class Installer:
                             f'Installing ton-blockchain dependency "{requirement}"',
                         ),
                     )
-                    compiler.packages_get(requirement, input=self._superuser_password)
+                    compiler.packages_get(requirement, input=self._superuser_password.encode())
             self.compile_ton_sources(truncated_version, compiler)
         time.sleep(5)
     
