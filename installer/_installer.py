@@ -392,7 +392,7 @@ class Installer:
             version,
             'Running cmake',
         )
-        compiler.cmake('-S', sources_path)
+        compiler.cmake(sources_path)
     
     def _install_fift(self) -> None:
         pass

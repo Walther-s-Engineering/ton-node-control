@@ -41,7 +41,7 @@ class Compiler(Builder):
         **kwargs,
     ) -> subprocess.CompletedProcess:
         if MACOS is True:
-            return self.run('sudo', '-S','brew', 'install', '-y', *args, **kwargs)
+            return self.run('sudo', '-S', 'brew', 'install', '-y', *args, **kwargs)
         return self.run(
             'sudo', '-S', 'apt-get', 'install', '-y',
             *args,
@@ -50,7 +50,7 @@ class Compiler(Builder):
     
     def cmake(self, *args, **kwargs) -> subprocess.CompletedProcess:
         return self.run(
-            'cmake', '-DCMAKE_BUILD_TYPE=Release', '-B', self.path,
+            'sudo', '-S', 'cmake', '-DCMAKE_BUILD_TYPE=Release', '-B', self.path,
             *args, **kwargs,
         )
     
