@@ -30,7 +30,6 @@ class Builder:
     def run(*args: t.Any, **kwargs: t.Dict[String, t.Any]) -> subprocess.CompletedProcess:
         process = subprocess.run(
             args,
-            stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             **kwargs,
