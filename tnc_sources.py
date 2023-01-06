@@ -1,0 +1,17 @@
+TON_BUILD_REQUIREMENTS = [
+    'build-essential',
+    'git',
+    'make',
+    'cmake',
+    'clang',
+    'libgflags-dev',
+    'zlib1g-dev',
+    'libssl-dev',
+    'libreadline-dev',
+    'libmicrohttpd-dev',
+    'pkg-config',
+    'libgsl-dev',
+    'python3',
+    'python3-dev',
+    'python3-pip',
+]
