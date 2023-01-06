@@ -20,7 +20,7 @@ keywords = ["The Open Network", "TON", "blockhain", "tools"]
 license = "Apache-2.0"
 name = "ton-node-control"
 packages = [
-    { include = "ton_node_control"},
+    { include = "ton_node_control" },
 ]
 readme = "README.md"
 repository = "https://github.com/Walther-s-Engineering/ton-node-control.git"

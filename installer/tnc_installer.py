@@ -421,13 +421,13 @@ class Installer:
             ),
         )
         self.ensure_directories()
-        # try:
-        #     self.install(version)
-        # except subprocess.CalledProcessError as err:
-        #     raise TonNodeControlInstallationError(
-        #         log=err.output.decode(),
-        #         return_code=err.returncode,
-        #     ) from err
+        try:
+            self.install(version)
+        except subprocess.CalledProcessError as err:
+            raise TonNodeControlInstallationError(
+                log=err.output.decode(),
+                return_code=err.returncode,
+            ) from err
         try:
             self.install_ton(ton_version)
         except subprocess.CalledProcessError as err:
