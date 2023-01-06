@@ -132,7 +132,7 @@ class Installer:
                 colorize('info', '"ton-node-control"'),
                 colorize('bold', version),
                 colorize('comment', message),
-            )
+            ),
         )
     
     def allow_pre_releases(self) -> Bool:

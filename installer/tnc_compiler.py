@@ -7,6 +7,7 @@ import shutil
 
 from tnc_builder import Builder
 from tnc_typing import String
+from tnc_path import MACOS
 
 
 class Compiler(Builder):
@@ -28,7 +29,6 @@ class Compiler(Builder):
         *args,
         **kwargs,
     ) -> subprocess.CompletedProcess:
-        raise ValueError('FIX PASSWORD USAGE', superuser_password)
         if MACOS is True:
             return self.run('brew', 'update', '-y', *args, **kwargs)
         return self.run(
@@ -43,7 +43,6 @@ class Compiler(Builder):
         *args,
         **kwargs,
     ) -> subprocess.CompletedProcess:
-        raise ValueError('FIX PASSWORD USAGE', superuser_password)
         if MACOS is True:
             return self.run('brew', 'install', '-y', *args, **kwargs)
         return self.run(
