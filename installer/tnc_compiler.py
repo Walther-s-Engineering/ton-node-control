@@ -6,7 +6,6 @@ import os
 import shutil
 
 from tnc_builder import Builder
-from tnc_typing import String
 from tnc_path import MACOS
 
 
@@ -25,28 +24,26 @@ class Compiler(Builder):
     
     def packages_update(
         self,
-        superuser_password: String,
         *args,
         **kwargs,
     ) -> subprocess.CompletedProcess:
         if MACOS is True:
-            return self.run('brew', 'update', '-y', *args, **kwargs)
+            return self.run('sudo', '-S', 'brew', 'update', '-y', *args, **kwargs)
         return self.run(
-            f'sudo -S <<< "{superuser_password}"', 'apt-get', 'update', '-y',
+            'sudo', '-S', 'apt-get', 'update', '-y',
             *args,
             **kwargs,
         )
     
     def packages_get(
         self,
-        superuser_password: String,
         *args,
         **kwargs,
     ) -> subprocess.CompletedProcess:
         if MACOS is True:
-            return self.run('brew', 'install', '-y', *args, **kwargs)
+            return self.run('sudo', '-S','brew', 'install', '-y', *args, **kwargs)
         return self.run(
-            f'sudo -S <<< "{superuser_password}"', 'apt-get', 'install', '-y',
+            'sudo', '-S', 'apt-get', 'install', '-y',
             *args,
             **kwargs,
         )

@@ -33,7 +33,6 @@ class Builder:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            input='rgy181lw',
             **kwargs,
         )
         if process.returncode != 0:
