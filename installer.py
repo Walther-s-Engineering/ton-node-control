@@ -42,7 +42,7 @@ def download_requirements(url: str) -> bytes:
 
 
 def write_file(data: bytes, file: str) -> None:
-    with open(f'./{file}', 'wb+') as file:
+    with open(f'./{file}', 'w+b') as file:
         file.write(data)
 
 
