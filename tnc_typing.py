@@ -1,3 +1,7 @@
+import sys
+import typing as t
+
+
 if sys.version_info < (3, 8):
     print(
         '\033[0;31mThis module cannot be used with a version of "Python" below 3.8.\n'
