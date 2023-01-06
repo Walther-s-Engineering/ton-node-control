@@ -405,7 +405,6 @@ class Installer:
                 version, current_version = self.get_package_meta_data()
             except ValueError:
                 return 1
-        raise ValueError('qqq')
         if version is None:
             return 0
         try:
