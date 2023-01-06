@@ -7,7 +7,6 @@ tnc_builder.py
 tnc_compiler.py
 tnc_cursor.py
 tnc_exceptions.py
-tnc_installer.py
 tnc_path.py
 tnc_prompts.py
 tnc_sources.py

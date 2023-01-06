@@ -13,9 +13,16 @@ import tempfile
 import urllib.request
 
 
-INSTALLER_REQUIREMENTS: t.List[str] = [
+def simple_write(text: str) -> None:
+    sys.stdout.write(text + '\n')
+
+
+REQUIREMENTS_BEFORE_FULL_INSTALLATION: t.List[str] = [
     'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_typing.py',
     'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_styling.py',
+]
+
+INSTALLER_REQUIREMENTS: t.List[str] = [
     'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_path.py',
     'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_sources.py',
     'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_prompts.py',
@@ -39,17 +46,30 @@ def write_file(data: bytes, file: str) -> None:
         file.write(data)
 
 
-for requirement_file_url in INSTALLER_REQUIREMENTS:
+simple_write('Preparing installation process. Downloading required dependencies.')
+for index, first_dependencies_url in enumerate(REQUIREMENTS_BEFORE_FULL_INSTALLATION):
+    file_name: str = os.path.basename(first_dependencies_url)
+    simple_write(f'\tDownloading dependency: "{file_name.strip(".py")}"')
+    file_data: bytes = download_requirements(first_dependencies_url)
+    write_file(file_data, file_name)
+
+
+from styling import write_styled_stdout  # noqa: E402
+
+write_styled_stdout('info', '\tSuccessfully downloaded base dependencies for installation process.')
+
+write_styled_stdout('warning', 'Downloading installer dependencies for full installation.')
+for index, requirement_file_url in enumerate(INSTALLER_REQUIREMENTS):
     file_data: bytes = download_requirements(requirement_file_url)
     write_file(file_data, os.path.basename(requirement_file_url))
 
-
-from tnc_installer import Installer  # noqa: E402
-from tnc_exceptions import TonNodeControlInstallationError  # noqa: E402
-from tnc_prompts import prompt_sudo_password, prompt_package_installation  # noqa: E402
-from tnc_path import WINDOWS  # noqa: E402
-from tnc_typing import Bool, String, Integer  # noqa: E402
-from tnc_styling import write_styled_stdout, colorize  # noqa: E402
+sys.exit(1)
+from installer import Installer  # noqa: E402
+from exceptions import TonNodeControlInstallationError  # noqa: E402
+from prompts import prompt_sudo_password, prompt_package_installation  # noqa: E402
+from path import WINDOWS  # noqa: E402
+from typing import Bool, String, Integer  # noqa: E402
+from styling import write_styled_stdout, colorize  # noqa: E402
 
 
 def main() -> Integer:
