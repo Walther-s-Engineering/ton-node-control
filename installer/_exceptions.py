@@ -1,6 +1,6 @@
 import typing as t
 
-from tnc_typing import Integer, String
+from _typing import Integer, String
 
 
 class TonNodeControlInstallationError(RuntimeError):

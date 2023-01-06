@@ -3,10 +3,10 @@ import typing as t
 import os
 import sys
 
-from tnc_path import MACOS
-from tnc_styling import colorize, string_to_bool, write_styled_stdout
-from tnc_typing import Bool, String
-from tnc_sources import TON_BUILD_REQUIREMENTS
+from _path import MACOS
+from _styling import colorize, string_to_bool, write_styled_stdout
+from _typing import Bool, String
+from _sources import TON_BUILD_REQUIREMENTS
 
 
 def get_input(prompt: String) -> String:

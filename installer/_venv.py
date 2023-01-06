@@ -7,8 +7,8 @@ import tempfile
 import pathlib
 import urllib.request
 
-from tnc_builder import Builder
-from tnc_typing import String
+from _builder import Builder
+from _typing import String
 
 
 class VirtualEnvironment(Builder):

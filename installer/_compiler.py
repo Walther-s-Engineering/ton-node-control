@@ -5,8 +5,8 @@ import pathlib
 import os
 import shutil
 
-from tnc_builder import Builder
-from tnc_path import MACOS
+from _builder import Builder
+from _path import MACOS
 
 
 class Compiler(Builder):

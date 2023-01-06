@@ -18,20 +18,20 @@ def simple_write(text: str) -> None:
 
 
 REQUIREMENTS_BEFORE_FULL_INSTALLATION: t.List[str] = [
-    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_typing.py',
-    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_styling.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/_typing.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/_styling.py',
 ]
 
 INSTALLER_REQUIREMENTS: t.List[str] = [
-    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_path.py',
-    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_sources.py',
-    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_prompts.py',
-    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_cursor.py',
-    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_exceptions.py',
-    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_compiler.py',
-    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_builder.py',
-    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_venv.py',
-    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/tnc_installer.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/_path.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/_sources.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/_prompts.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/_cursor.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/_exceptions.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/_compiler.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/_builder.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/_venv.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/_installer.py',
 ]
 
 
@@ -54,7 +54,7 @@ for index, first_dependencies_url in enumerate(REQUIREMENTS_BEFORE_FULL_INSTALLA
     write_file(file_data, file_name)
 
 
-from styling import write_styled_stdout  # noqa: E402
+from _styling import write_styled_stdout  # noqa: E402
 
 write_styled_stdout('info', '\tSuccessfully downloaded base dependencies for installation process.')
 
@@ -64,12 +64,12 @@ for index, requirement_file_url in enumerate(INSTALLER_REQUIREMENTS):
     write_file(file_data, os.path.basename(requirement_file_url))
 
 sys.exit(1)
-from installer import Installer  # noqa: E402
-from exceptions import TonNodeControlInstallationError  # noqa: E402
-from prompts import prompt_sudo_password, prompt_package_installation  # noqa: E402
-from path import WINDOWS  # noqa: E402
-from typing import Bool, String, Integer  # noqa: E402
-from styling import write_styled_stdout, colorize  # noqa: E402
+from _installer import Installer  # noqa: E402
+from _exceptions import TonNodeControlInstallationError  # noqa: E402
+from _prompts import prompt_sudo_password, prompt_package_installation  # noqa: E402
+from _path import WINDOWS  # noqa: E402
+from _typing import Bool, String, Integer  # noqa: E402
+from _styling import write_styled_stdout, colorize  # noqa: E402
 
 
 def main() -> Integer:

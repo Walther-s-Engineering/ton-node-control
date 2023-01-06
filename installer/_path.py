@@ -4,7 +4,7 @@ import os
 import sys
 import site
 
-from tnc_typing import String
+from _typing import String
 
 SHELL: String = os.getenv('SHELL', '')
 WINDOWS = sys.platform.startswith('win') or (sys.platform == 'cli' and os.name == 'nt')

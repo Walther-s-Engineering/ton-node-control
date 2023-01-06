@@ -5,8 +5,8 @@ import typing as t
 import pathlib
 import subprocess
 
-from tnc_typing import String
-from tnc_exceptions import TonNodeControlInstallationError
+from _typing import String
+from _exceptions import TonNodeControlInstallationError
 
 
 class Builder:

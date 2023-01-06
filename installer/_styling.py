@@ -5,8 +5,8 @@ import os
 import sys
 import typing as t
 
-from tnc_typing import Bool, String, Integer
-from tnc_typing import COLOR, OPTION, STYLE
+from _typing import Bool, String, Integer
+from _typing import COLOR, OPTION, STYLE
 
 FOREGROUND_COLORS: t.Dict[COLOR, Integer] = dict(
     black=30,

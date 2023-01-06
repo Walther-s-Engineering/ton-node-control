@@ -16,14 +16,14 @@ import os
 
 from datetime import datetime
 
-from tnc_compiler import Compiler
-from tnc_cursor import Cursor
-from tnc_typing import Bool, Bytes, String, Integer
-from tnc_path import module_directory, binary_directory, ton_binary_directory
-from tnc_styling import colorize, is_decorated, write_styled_stdout
-from tnc_venv import VirtualEnvironment
-from tnc_sources import TON_BUILD_REQUIREMENTS
-from tnc_exceptions import TonNodeControlInstallationError
+from _compiler import Compiler
+from _cursor import Cursor
+from _typing import Bool, Bytes, String, Integer
+from _path import module_directory, binary_directory, ton_binary_directory
+from _styling import colorize, is_decorated, write_styled_stdout
+from _venv import VirtualEnvironment
+from _sources import TON_BUILD_REQUIREMENTS
+from _exceptions import TonNodeControlInstallationError
 
 PRE_MESSAGE = """Welcome to {ton_node_control}!
 
