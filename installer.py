@@ -49,21 +49,25 @@ def write_file(data: bytes, file: str) -> None:
 simple_write('Preparing installation process. Downloading required dependencies.')
 for index, first_dependencies_url in enumerate(REQUIREMENTS_BEFORE_FULL_INSTALLATION):
     file_name: str = os.path.basename(first_dependencies_url)
-    simple_write(f'\tDownloading dependency: "{file_name.strip(".py")}"')
+    simple_write(f'\tDownloading dependency: "{file_name.strip(".py").lstrip("_")}"')
     file_data: bytes = download_requirements(first_dependencies_url)
     write_file(file_data, file_name)
 
 
 from _styling import write_styled_stdout  # noqa: E402
 
-write_styled_stdout('info', '\tSuccessfully downloaded base dependencies for installation process.')
-
+write_styled_stdout('info', 'Successfully downloaded base dependencies for installation process.')
+simple_write('')
 write_styled_stdout('warning', 'Downloading installer dependencies for full installation.')
 for index, requirement_file_url in enumerate(INSTALLER_REQUIREMENTS):
+    file_name: str = os.path.basename(requirement_file_url)
+    write_styled_stdout('warning', f'\tDownloading dependency: "{file_name.strip(".py").lstrip("_")}"')
     file_data: bytes = download_requirements(requirement_file_url)
     write_file(file_data, os.path.basename(requirement_file_url))
+write_styled_stdout('info', 'Successfully downloaded base dependencies for installation process.')
+simple_write('')
 
-sys.exit(1)
+
 from _installer import Installer  # noqa: E402
 from _exceptions import TonNodeControlInstallationError  # noqa: E402
 from _prompts import prompt_sudo_password, prompt_package_installation  # noqa: E402
