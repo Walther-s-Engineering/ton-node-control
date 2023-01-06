@@ -256,7 +256,6 @@ class Installer:
             if env_path_saved.exists():
                 shutil.rmtree(env_path_saved)
             shutil.move(env_path, env_path_saved)
-        
         try:
             self._install_comment(
                 version,
@@ -269,7 +268,7 @@ class Installer:
                     version, 'An error occurred. Removing partial environment.'
                 )
                 shutil.rmtree(env_path)
-            
+
             if env_path_saved.exists():
                 self._install_comment(
                     version, 'Restoring previously saved environment.'
