@@ -67,7 +67,6 @@ class Builder:
             args,
             stdout=kwargs.get('buffer', subprocess.PIPE),
             stderr=kwargs.get('buffer', subprocess.STDOUT),
-            bufsize=1,
             **kwargs,
         )
 
