@@ -53,7 +53,7 @@ class Compiler(Builder):
         )
     
     def make_build(self, *args, **kwargs) -> subprocess.CompletedProcess:
-        return self.run('ninja', '-j', os.cpu_count(), *args, **kwargs)
+        return self.run('ninja', '-j', str(os.cpu_count()), *args, **kwargs)
 
     def git(self, *args, **kwargs) -> subprocess.CompletedProcess:
         return self.run('git', *args, **kwargs)
