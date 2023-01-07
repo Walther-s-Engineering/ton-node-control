@@ -54,7 +54,6 @@ def prompt_sudo_password(args: argparse.Namespace) -> t.Optional[String]:
         )
         password: String = getpass.getpass(' Type your password: ')
         return password
-    return None
 
 
 def prompt_package_installation() -> Bool:
