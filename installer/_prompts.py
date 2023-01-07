@@ -41,14 +41,16 @@ def prompt_sudo_password(args: argparse.Namespace) -> t.Optional[String]:
             f'Packages required for installation:',
         )
         sys.stdout.write('>>>\t' + dependencies + '\n')
+    
     if args.accept_all is True:
         password: String = getpass.getpass(' Type your password: ')
         return password
+
     use_installer: Bool = string_to_bool(get_input('Use installer?\n Answer: '))
     if use_installer is True:
         write_styled_stdout(
             'warning',
-            'The installer will be used to install the required packages.'
+            'The installer will be used to install the required packages.',
         )
         password: String = getpass.getpass(' Type your password: ')
         return password
