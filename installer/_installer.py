@@ -364,24 +364,13 @@ class Installer:
     
     def compile_ton_sources(self, version: String, compiler: Compiler) -> None:
         with tempfile.TemporaryDirectory(prefix='ton-blockchain-installer') as temp_dir:
+            self._install_comment(
+                version,
+                colorize('info', f'Cloning ton-blockchain source code'),
+            )
             compiler.git_clone('git@github.com:ton-blockchain/ton.git', '--recursive', temp_dir)
             print(os.listdir(temp_dir))
-        #     tarball_path = pathlib.Path(temp_dir)
-        #     archive_path: pathlib.Path = tarball_path.joinpath('sources.tar.gz')
-        #     with open(archive_path, 'w+b') as file:
-        #         file.write(data)
-        #     self._install_comment(
-        #         version,
-        #         colorize(
-        #             'info',
-        #             f'Unpacking "ton-blockchain" sources to compile',
-        #         ),
-        #     )
-        #     tarfile.open(file.name).extractall(tarball_path)
-        #     os.remove(archive_path)
-        #     sources_dir: String = t.cast(String, os.listdir(tarball_path).pop())
-        #     sources_path: pathlib.Path = tarball_path.joinpath(sources_dir)
-        #     self._compile_ton(version, compiler, sources_path)
+            self._compile_ton(version, compiler, temp_dir)
     
     def _compile_ton(
         self,
