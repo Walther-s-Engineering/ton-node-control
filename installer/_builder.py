@@ -67,8 +67,12 @@ class Builder:
             args,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
+            bufsize=1,
             **kwargs,
         )
+        for line in iter(process.stdout.readline, 'b'):
+            print(line)
+
         if process.returncode != 0:
             raise TonNodeControlInstallationError(
                 log=process.stdout.decode(),
