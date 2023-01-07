@@ -1,3 +1,4 @@
+import argparse
 import getpass
 import typing as t
 import os
@@ -24,7 +25,7 @@ def prompt_use_installer() -> t.Optional[String]:
         return password
 
 
-def prompt_sudo_password() -> t.Optional[String]:
+def prompt_sudo_password(args: argparse.Namespace) -> t.Optional[String]:
     if MACOS is True:
         dependencies = colorize('info', 'brew install ')
     else:
@@ -40,6 +41,9 @@ def prompt_sudo_password() -> t.Optional[String]:
             f'Packages required for installation:',
         )
         sys.stdout.write('>>>\t' + dependencies + '\n')
+    if args.accept_all is True:
+        password: String = getpass.getpass(' Type your password: ')
+        return password
     use_installer: Bool = string_to_bool(get_input('Use installer?\n Answer: '))
     if use_installer is True:
         write_styled_stdout(
