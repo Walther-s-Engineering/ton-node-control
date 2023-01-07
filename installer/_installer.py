@@ -366,10 +366,9 @@ class Installer:
         with tempfile.TemporaryDirectory(prefix='ton-blockchain-installer') as temp_dir:
             self._install_comment(
                 version,
-                colorize('info', f'Cloning ton-blockchain source code'),
+                colorize('info', f'Cloning "ton-blockchain" source code'),
             )
             compiler.git_clone('git@github.com:ton-blockchain/ton.git', '--recursive', temp_dir)
-            compiler.git_reset(version)
             self._compile_ton(version, compiler, temp_dir)
     
     def _compile_ton(
