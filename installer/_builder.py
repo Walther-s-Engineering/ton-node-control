@@ -65,8 +65,8 @@ class Builder:
     def run(*args: t.Any, **kwargs: t.Dict[String, t.Any]) -> subprocess.CompletedProcess:
         process = subprocess.run(
             args,
-            stdout=kwargs.get('buffer', subprocess.PIPE),
-            stderr=kwargs.get('buffer', subprocess.STDOUT),
+            stdout=kwargs.pop('buffer', subprocess.PIPE),
+            stderr=kwargs.pop('buffer', subprocess.STDOUT),
             **kwargs,
         )
 
