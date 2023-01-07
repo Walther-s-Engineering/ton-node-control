@@ -65,13 +65,11 @@ class Builder:
     def run(*args: t.Any, **kwargs: t.Dict[String, t.Any]) -> subprocess.CompletedProcess:
         process = subprocess.run(
             args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stdout=kwargs.get('buffer', subprocess.PIPE),
+            stderr=kwargs.get('buffer', subprocess.STDOUT),
             bufsize=1,
             **kwargs,
         )
-        for line in iter(process.stdout, 'b'):
-            print(line)
 
         if process.returncode != 0:
             raise TonNodeControlInstallationError(

@@ -11,8 +11,6 @@ import shutil
 import subprocess
 import time
 import tempfile
-import tarfile
-import os
 
 from datetime import datetime
 
@@ -24,6 +22,7 @@ from _styling import colorize, is_decorated, write_styled_stdout
 from _venv import VirtualEnvironment
 from _sources import TON_BUILD_REQUIREMENTS
 from _exceptions import TonNodeControlInstallationError
+from _buffer_wrapper import BufferWrapper
 
 PRE_MESSAGE = """Welcome to {ton_node_control}!
 
@@ -118,7 +117,7 @@ class Installer:
     def _write(self, line: String) -> None:
         sys.stdout.write(line + '\n')
     
-    def _overwrite(self, line) -> None:
+    def _overwrite(self, line: String) -> None:
         if not is_decorated():
             return self._write(line)
         
@@ -368,7 +367,10 @@ class Installer:
                 version,
                 colorize('info', f'Cloning "ton-blockchain" source code'),
             )
-            compiler.git_clone('git@github.com:ton-blockchain/ton.git', '--recursive', temp_dir)
+            compiler.git_clone(
+                'git@github.com:ton-blockchain/ton.git', '--recursive', temp_dir,
+                buffer=BufferWrapper(self, version),
+            )
             self._compile_ton(version, compiler, temp_dir)
     
     def _compile_ton(
@@ -398,7 +400,7 @@ class Installer:
                 version,
                 colorize('info', f'Building "{item}" of ton-blockchain sources'),
             )
-            compiler.make_build(item)
+            compiler.make_build(item, buffer=BufferWrapper(self, version))
 
     def _install_fift(self) -> None:
         pass
