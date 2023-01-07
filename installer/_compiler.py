@@ -3,9 +3,8 @@ from __future__ import annotations
 import subprocess
 import pathlib
 import os
-import shutil
 
-from _builder import Builder
+from _builder import Builder, set_build_env_variables, get_build_variables
 from _path import MACOS
 
 
@@ -17,9 +16,7 @@ class Compiler(Builder):
     @classmethod
     def make(cls, target: pathlib.Path) -> Compiler:
         compiler: Compiler = cls(target)
-        os.environ.setdefault('CC', shutil.which('clang'))
-        os.environ.setdefault('CXX', shutil.which('clang++'))
-        os.environ.setdefault('CCACHE_DISABLE', '1')
+        set_build_env_variables()
         return compiler
     
     def packages_update(
@@ -50,12 +47,13 @@ class Compiler(Builder):
     
     def cmake(self, *args, **kwargs) -> subprocess.CompletedProcess:
         return self.run(
-            'sudo', '-S', 'cmake', '-DCMAKE_BUILD_TYPE=Release', '-B', self.path,
-            *args, **kwargs,
+            'sudo', '-S', 'cmake', '-B', self.path, *get_build_variables(),
+            *args,
+            **kwargs,
         )
     
     def make_build(self, *args, **kwargs) -> subprocess.CompletedProcess:
-        return self.run('make', '-j', os.cpu_count(), *args, **kwargs)
+        return self.run('ninja', '-j', os.cpu_count(), *args, **kwargs)
 
     def git(self, *args, **kwargs) -> subprocess.CompletedProcess:
         return self.run('git', *args, **kwargs)

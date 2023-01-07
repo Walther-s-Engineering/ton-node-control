@@ -369,7 +369,7 @@ class Installer:
                 colorize('info', f'Cloning ton-blockchain source code'),
             )
             compiler.git_clone('git@github.com:ton-blockchain/ton.git', '--recursive', temp_dir)
-            print(os.listdir(temp_dir))
+            compiler.git_reset(version)
             self._compile_ton(version, compiler, temp_dir)
     
     def _compile_ton(
@@ -383,7 +383,18 @@ class Installer:
             'Running cmake',
         )
         compiler.cmake(sources_path)
-    
+        compiler.make_build(
+            'dht-server',
+            'fift',
+            'func',
+            'lite-client',
+            'validator-engine',
+            'validator-engine-console',
+            'generate-random-id',
+            'tonlibjson',
+            'rldp-http-proxy',
+        )
+
     def _install_fift(self) -> None:
         pass
     

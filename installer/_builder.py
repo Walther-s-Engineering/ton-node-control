@@ -1,12 +1,47 @@
 from __future__ import annotations
 
+import platform
+import shutil
 import typing as t
 
+import os
 import pathlib
 import subprocess
 
+from _path import MACOS
 from _typing import String
 from _exceptions import TonNodeControlInstallationError
+
+
+CLANG_PATH = shutil.which('clang')
+CLANG_XX_PATH = shutil.which('clang++')
+ENV_CCACHE_DISABLE = '1'
+
+ENV_MACOS_CPU = '-mcpu=apple-a14'
+ENV_MACOS_CC = f'{CLANG_PATH} {ENV_MACOS_CPU}'
+ENV_MACOS_CXX = f'{CLANG_XX_PATH} {ENV_MACOS_CPU}'
+
+
+def set_build_env_variables() -> None:
+    if MACOS is True:
+        os.environ.setdefault('CC', ENV_MACOS_CC)
+        os.environ.setdefault('CXX', ENV_MACOS_CXX)
+        os.environ.setdefault('CCACHE_DISABLE', ENV_CCACHE_DISABLE)
+        os.environ.setdefault('CMAKE_C_COMPILER', CLANG_PATH)
+        os.environ.setdefault('CMAKE_CXX_COMPILE', CLANG_XX_PATH)
+    else:
+        os.environ.setdefault('CC', ENV_MACOS_CC)
+        os.environ.setdefault('CXX', ENV_MACOS_CXX)
+        os.environ.setdefault('CCACHE_DISABLE', ENV_CCACHE_DISABLE)
+
+
+def get_build_variables() -> t.List[str]:
+    architecture: str = platform.machine()
+    default_arguments = ['-DCMAKE_BUILD_TYPE=Release', '-GNinja']
+    if 'arm' == architecture:
+        return ['-DTON_ARCH=', '-Wno-dev', *default_arguments]
+    else:
+        return [*default_arguments]
 
 
 class Builder:
