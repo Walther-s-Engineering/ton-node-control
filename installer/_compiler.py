@@ -47,7 +47,7 @@ class Compiler(Builder):
     
     def cmake(self, *args, **kwargs) -> subprocess.CompletedProcess:
         return self.run(
-            'sudo', '-S', 'cmake', '-B', self.path, *get_build_variables(),
+            'cmake', '-B', self.path, *get_build_variables(),
             *args,
             **kwargs,
         )
