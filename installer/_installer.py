@@ -380,10 +380,10 @@ class Installer:
     ) -> None:
         self._install_comment(
             version,
-            'Running cmake',
+            colorize('info', 'Running cmake'),
         )
         compiler.cmake(sources_path)
-        compiler.make_build(
+        build_items = [
             'dht-server',
             'fift',
             'func',
@@ -393,7 +393,13 @@ class Installer:
             'generate-random-id',
             'tonlibjson',
             'rldp-http-proxy',
-        )
+        ]
+        for item in build_items:
+            self._install_comment(
+                version,
+                colorize('info', f'Building "{item}" of ton-blockchain sources'),
+            )
+            compiler.make_build(item)
 
     def _install_fift(self) -> None:
         pass
