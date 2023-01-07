@@ -70,7 +70,7 @@ class Builder:
             bufsize=1,
             **kwargs,
         )
-        for line in iter(process.stdout.readline, 'b'):
+        for line in iter(process.stdout.read, 'b'):
             print(line)
 
         if process.returncode != 0:
