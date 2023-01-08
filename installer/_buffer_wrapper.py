@@ -18,4 +18,4 @@ class BufferWrapper(io.IOBase):
             self.installer._install_comment(self.version, line)
 
     def fileno(self) -> int:
-        return super().fileno()
+        return 1
