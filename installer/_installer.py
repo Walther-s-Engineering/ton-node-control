@@ -367,10 +367,7 @@ class Installer:
                 version,
                 colorize('info', f'Cloning "ton-blockchain" source code'),
             )
-            compiler.git_clone(
-                'git@github.com:ton-blockchain/ton.git', '--recursive', temp_dir,
-                buffer=BufferWrapper(self, version),
-            )
+            compiler.git_clone('git@github.com:ton-blockchain/ton.git', '--recursive', temp_dir)
             self._compile_ton(version, compiler, temp_dir)
     
     def _compile_ton(
@@ -400,7 +397,7 @@ class Installer:
                 version,
                 colorize('info', f'Building "{item}" of ton-blockchain sources'),
             )
-            compiler.make_build(item, buffer=BufferWrapper(self, version))
+            compiler.make_build(item)
 
     def _install_fift(self) -> None:
         pass
