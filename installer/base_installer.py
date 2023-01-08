@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-import sys
 import typing as t
+
+import re
+import sys
 
 from installer.typing import String, Integer
 from installer.styling import is_decorated
@@ -99,6 +101,15 @@ class Installer:
     MEDATA_URL: String = 'https://pypi.org/pypi/ton-node-control/json'
     TON_MEDATA_URL: String = 'https://api.github.com/repos/ton-blockchain/ton/commits'
     TON_SOURCES_URL: String = 'https://api.github.com/repos/ton-blockchain/ton/tarball/{version}'
+    VERSION_REGEX = re.compile(
+        r'v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?'
+        '('
+        '[._-]?'
+        r'(?:(stable|beta|b|rc|RC|alpha|a|patch|pl|p)((?:[.-]?\d+)*)?)?'
+        '([.-]?dev)?'
+        ')?'
+        r'(?:\+\S+)?'
+    )
 
     def __init__(
         self,

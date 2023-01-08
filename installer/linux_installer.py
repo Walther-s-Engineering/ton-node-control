@@ -1,5 +1,5 @@
-from installer.base_installer import Installer
+from installer.base_installer import Installer as BaseInstaller
 
 
-class LinuxInstaller(Installer):
+class Installer(BaseInstaller):
     pass
