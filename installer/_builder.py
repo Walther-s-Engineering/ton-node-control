@@ -63,10 +63,12 @@ class Builder:
 
     @staticmethod
     def run(*args: t.Any, **kwargs: t.Dict[String, t.Any]) -> subprocess.CompletedProcess:
+        stdout_buffer = kwargs.pop('buffer', subprocess.PIPE)
+        stderr_buffer = kwargs.pop('buffer', subprocess.STDOUT)
         process = subprocess.run(
             args,
-            stdout=kwargs.pop('buffer', subprocess.PIPE),
-            stderr=kwargs.pop('buffer', subprocess.STDOUT),
+            stdout=stdout_buffer,
+            stderr=stderr_buffer,
             **kwargs,
         )
 
