@@ -35,6 +35,8 @@ sys.path.append(TEMPORARY_DIRECTORY.name)
 
 BASE_DEPENDENCIES = [
     'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/base_installer.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/styling.py',
+    'https://raw.githubusercontent.com/Walther-s-Engineering/ton-node-control/master/installer/typing.py',
 ]
 INSTALLERS_BY_SYSTEM = Installers(
     linux=InstallerMetadata(
@@ -51,7 +53,11 @@ INSTALLERS_BY_SYSTEM = Installers(
     ),
 )
 
-INSTALLER_META_DATA: InstallerMetadata = getattr(INSTALLERS_BY_SYSTEM, sys.platform)
+INSTALLER_META_DATA: t.Optional[InstallerMetadata] = getattr(INSTALLERS_BY_SYSTEM, sys.platform, None)
+
+if INSTALLER_META_DATA is None:
+    print('Your operating system is not supported yet. Installation cannot be processed.')
+    sys.exit(1)
 
 
 def download_requirement(url: str) -> bytes:
@@ -60,13 +66,13 @@ def download_requirement(url: str) -> bytes:
         return response.read()
 
 
-def build_directory_and_module(dependency: str, dependency_data: bytes) -> str:
+def build_directory_and_module(dependency: str, dependency_code: bytes) -> str:
     installer_module_path: str = os.path.join(TEMPORARY_DIRECTORY.name, 'installer')
     with contextlib.suppress(FileExistsError):
         os.mkdir(installer_module_path)
     dependency_name: str = os.path.basename(dependency)
     with open(os.path.join(installer_module_path, dependency_name), 'w+b') as file:
-        file.write(dependency_data)
+        file.write(dependency_code)
     return os.path.basename(file.name).strip('.py')
 
 
