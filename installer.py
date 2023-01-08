@@ -176,8 +176,8 @@ def main() -> int:
 
 if __name__ == '__main__':
     try:
-        exit_code: int = main()
-        TEMPORARY_DIRECTORY.cleanup()
-        sys.exit(exit_code)
+        sys.exit(main())
     except KeyboardInterrupt:
         sys.exit(0)
+    finally:
+        TEMPORARY_DIRECTORY.cleanup()
