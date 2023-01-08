@@ -127,3 +127,6 @@ class Installer:
     def _overwrite(self, line: String) -> None:
         if not is_decorated():
             return self._write(line)
+    
+    def install(self) -> Integer:
+        return 1

@@ -172,6 +172,10 @@ def main() -> int:
         version=arguments.version,
         ton_version=arguments.ton_version,
     )
+    try:
+        installer.install()
+    except Exception as err:
+        raise err
     return 1
 
 
