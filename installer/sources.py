@@ -28,6 +28,11 @@ MODULE_PATH: t.Dict[String, Path] = {
     'darwin': Path('~/Library/Application Support'),
 }
 
+COMPILER_UPDATE_COMMAND = {
+    'linux': '',
+    'darwin': '',
+}
+
 
 def get_ton_node_control_home(*targets: t.Optional[String]) -> Path:
     if not targets:

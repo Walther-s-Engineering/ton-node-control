@@ -12,10 +12,12 @@ import shutil
 from pathlib import Path
 from urllib.request import Request, urlopen
 
+from installer.compiler import Compiler
+from installer.virtualenv import VirtualEnvironment
 from installer.styling import colorize, is_decorated
 from installer.sources import get_binaries_directory, get_module_directory, get_ton_binaries_directory
 from installer.typing import Bytes, String, Integer
-from installer
+
 
 class Cursor:
     def __init__(self) -> None:
@@ -241,10 +243,10 @@ class Installer:
         return version, current_version
 
     @contextlib.contextmanager
-    def make_environment(self, version: String):
+    def make_environment(self, version: String) -> VirtualEnvironment:
         env_path: Path = self.module_directory.joinpath('venv')
         env_path_saved: Path = env_path.with_suffix('.save')
-    
+
         if env_path.exists():
             self._install_comment(
                 version,
@@ -275,6 +277,26 @@ class Installer:
         else:
             if env_path_saved.exists():
                 shutil.rmtree(env_path_saved, ignore_errors=True)
+
+    @contextlib.contextmanager
+    def make_compiler(self, version: String) -> 'Compiler':
+        sources_backup_path: Path = self.ton_binaries_directory.with_suffix('.backup')
+        if self.ton_binaries_directory.exists():
+            self._install_comment(
+                version,
+                'Saving existing build',
+            )
+            if sources_backup_path.exists():
+                shutil.rmtree(sources_backup_path)
+            shutil.move(self.ton_binaries_directory, sources_backup_path)
+        try:
+            self._install_comment(
+                version,
+                'Preparing \'ton-blockchain\' sources to compilation process',
+            )
+            yield Compiler.make()
+        except Exception as err:
+            pass
 
     def install(self) -> Integer:
         self._write('Installing')
