@@ -6,6 +6,7 @@ import subprocess
 
 from pathlib import Path
 
+from installer.exceptions import TonNodeControlInstallationError
 from installer.typing import String
 
 
@@ -35,4 +36,8 @@ class Builder:
             **kwargs,
         )
         if process.returncode != 0:
-            raise Exception
+            raise TonNodeControlInstallationError(
+                log=process.stdout.decode(),
+                return_code=process.returncode,
+            )
+        return process
