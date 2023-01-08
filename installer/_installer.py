@@ -22,7 +22,6 @@ from _styling import colorize, is_decorated, write_styled_stdout
 from _venv import VirtualEnvironment
 from _sources import TON_BUILD_REQUIREMENTS
 from _exceptions import TonNodeControlInstallationError
-from _buffer_wrapper import BufferWrapper
 
 PRE_MESSAGE = """Welcome to {ton_node_control}!
 
