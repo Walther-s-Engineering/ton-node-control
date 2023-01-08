@@ -7,6 +7,7 @@ import typing as t
 
 import re
 import sys
+import shutil
 
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -14,7 +15,7 @@ from urllib.request import Request, urlopen
 from installer.styling import colorize, is_decorated
 from installer.sources import get_binaries_directory, get_module_directory, get_ton_binaries_directory
 from installer.typing import Bytes, String, Integer
-
+from installer
 
 class Cursor:
     def __init__(self) -> None:
@@ -238,6 +239,42 @@ class Installer:
             )
             return None, current_version
         return version, current_version
+
+    @contextlib.contextmanager
+    def make_environment(self, version: String):
+        env_path: Path = self.module_directory.joinpath('venv')
+        env_path_saved: Path = env_path.with_suffix('.save')
+    
+        if env_path.exists():
+            self._install_comment(
+                version,
+                'Saving existing environment',
+            )
+            if env_path_saved.exists():
+                shutil.rmtree(env_path_saved)
+            shutil.move(env_path, env_path_saved)
+        try:
+            self._install_comment(
+                version,
+                'Creating environment',
+            )
+            yield VirtualEnvironment.make(env_path)
+        except Exception as err:
+            if env_path.exists():
+                self._install_comment(
+                    version, 'An error occurred. Removing partial environment.'
+                )
+                shutil.rmtree(env_path)
+        
+            if env_path_saved.exists():
+                self._install_comment(
+                    version, 'Restoring previously saved environment.'
+                )
+                shutil.move(env_path_saved, env_path)
+            raise err
+        else:
+            if env_path_saved.exists():
+                shutil.rmtree(env_path_saved, ignore_errors=True)
 
     def install(self) -> Integer:
         self._write('Installing')
