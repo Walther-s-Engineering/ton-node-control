@@ -2,7 +2,6 @@ import typing as t
 
 import contextlib
 import re
-import pathlib
 import sys
 import urllib.request
 import json
@@ -13,6 +12,7 @@ import time
 import tempfile
 
 from datetime import datetime
+from pathlib import Path
 
 from _compiler import Compiler
 from _cursor import Cursor
@@ -38,8 +38,6 @@ and these changes will be reverted.
 
 class Installer:
     MEDATA_URL: String = 'https://pypi.org/pypi/ton-node-control/json'
-    TON_MEDATA_URL: String = 'https://api.github.com/repos/ton-blockchain/ton/commits'
-    TON_SOURCES_URL: String = 'https://api.github.com/repos/ton-blockchain/ton/tarball/{version}'
     VERSION_REGEX = re.compile(
         r"v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?"
         "("
@@ -49,7 +47,80 @@ class Installer:
         ")?"
         r"(?:\+[^\s]+)?"
     )
-    COMMIT_REGEX = re.compile(r'[0-9a-fA-F]{40}')
+    
+    def __init__(
+        self,
+        force: Bool,
+        version: t.Optional[String],
+        ton_version: t.Optional[String],
+    ) -> None:
+        self._force: Bool = force
+        self._version: t.Optional[String] = version
+        self._ton_version: t.Optional[String] = ton_version
+        
+        self._cursor = Cursor()
+
+        self._module_dir: Path = module_directory()
+        self._binaries_dir: Path = binary_directory()
+        self._ton_binaries_dir: Path = ton_binary_directory()
+    
+    @property
+    def module_directory(self) -> Path:
+        return self._module_dir
+    
+    @property
+    def binaries_directory(self) -> Path:
+        return self._binaries_dir
+
+    @property
+    def ton_binaries_directory(self) -> Path:
+        return self._ton_binaries_dir
+
+    @property
+    def version_file(self) -> Path:
+        return self.module_directory.joinpath('VERSION')
+
+    @property
+    def ton_version_file(self) -> Path:
+        return self.ton_binaries_directory.joinpath('VERSION')
+
+    @property
+    def ton_version(self) -> t.Optional[String]:
+        if self._ton_version is None:
+            return None
+        return self._ton_version[:6]
+    
+    @staticmethod
+    def _get(url: String) -> Bytes:
+        request = urllib.request.Request(url, headers={'User-Agent': 'ton-node-control'})
+        with contextlib.closing(urllib.request.urlopen(request)) as response:
+            return response.read()
+
+    @staticmethod
+    def _write(line: String) -> None:
+        sys.stdout.write(line + '\n')
+
+    def _overwrite(self, line: String) -> None:
+        if not is_decorated():
+            return self._write(line)
+        self._cursor.move_up()
+        self._cursor.clear_line()
+        self._write(line)
+
+    def _install_comment(self, version: String, message: String) -> None:
+        self._overwrite(
+            'Installing {} ({}): {}'.format(
+                colorize('info', '"ton-node-control"'),
+                colorize('bold', version),
+                colorize('comment', message),
+            ),
+        )
+
+
+class _Installer:
+    MEDATA_URL: String = 'https://pypi.org/pypi/ton-node-control/json'
+    TON_MEDATA_URL: String = 'https://api.github.com/repos/ton-blockchain/ton/commits'
+    TON_SOURCES_URL: String = 'https://api.github.com/repos/ton-blockchain/ton/tarball/{version}'
     
     def __init__(
         self,
@@ -70,60 +141,9 @@ class Installer:
         self._superuser_password: t.Optional[String] = superuser_password
         
         self._cursor = Cursor()
-        self._module_dir: pathlib.Path = module_directory()
-        self._binaries_dir: pathlib.Path = binary_directory()
-        self._ton_binaries_dir: pathlib.Path = ton_binary_directory()
         self._meta_data: t.Dict[t.Any, t.Any] = {}
         self._ton_meta_data: t.Dict[t.Any, t.Any] = {}
-    
-    @property
-    def binaries_dir(self) -> pathlib.Path:
-        if self._binaries_dir is None:
-            self._binaries_dir: pathlib.Path = binary_directory()
-        return self._binaries_dir
-    
-    @property
-    def module_dir(self) -> pathlib.Path:
-        if self._module_dir is None:
-            self._module_dir: pathlib.Path = module_directory()
-        return self._module_dir
-    
-    @property
-    def ton_binaries_dir(self) -> pathlib.Path:
-        if self._ton_binaries_dir is None:
-            self._ton_binaries_dir: pathlib.Path = ton_binary_directory()
-        return self._ton_binaries_dir
-    
-    @property
-    def version_file(self) -> pathlib.Path:
-        return self.module_dir.joinpath('VERSION')
-    
-    @property
-    def ton_version_file(self) -> pathlib.Path:
-        return self._ton_binaries_dir.joinpath('VERSION')
-    
-    @property
-    def ton_version(self) -> t.Optional[String]:
-        if self._ton_version is None:
-            return None
-        return self._ton_version[:6]
-    
-    def _get(self, url: String) -> Bytes:
-        request = urllib.request.Request(url, headers={'User-Agent': 'ton-node-control'})
-        with contextlib.closing(urllib.request.urlopen(request)) as response:
-            return response.read()
-    
-    def _write(self, line: String) -> None:
-        sys.stdout.write(line + '\n')
-    
-    def _overwrite(self, line: String) -> None:
-        if not is_decorated():
-            return self._write(line)
-        
-        self._cursor.move_up()
-        self._cursor.clear_line()
-        self._write(line)
-    
+
     def _install_comment(self, version: str, message: str):
         self._overwrite(
             'Installing {} ({}): {}'.format(

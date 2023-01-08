@@ -2,46 +2,66 @@ from __future__ import annotations
 
 import platform
 import shutil
+import site
+import sys
 import typing as t
 
 import os
 import pathlib
 import subprocess
 
-from _path import MACOS
-from _typing import String
+from pathlib import Path
+
+from _typing import Bytes, String
 from _exceptions import TonNodeControlInstallationError
 
+SHELL: String = os.getenv('SHELL', '')
+TON_NODE_CONTROL_HOME = os.getenv('TON_NODE_CONTROL_HOME')
 
-CLANG_PATH = shutil.which('clang')
-CLANG_XX_PATH = shutil.which('clang++')
-ENV_CCACHE_DISABLE = '1'
+SOURCES_DIRECTORY = {
+    'darwin': Path('/usr/local/src'),
+    'linux': Path('/usr/src'),
+}
 
-ENV_MACOS_CPU = '-mcpu=apple-a14'
-ENV_MACOS_CC = f'{CLANG_PATH} {ENV_MACOS_CPU}'
-ENV_MACOS_CXX = f'{CLANG_XX_PATH} {ENV_MACOS_CPU}'
+BINARIES_DIRECTORY = {
+    'darwin': Path('/usr/local/bin'),
+    'linux': Path('/usr/bin'),
+}
 
-
-def set_build_env_variables() -> None:
-    if MACOS is True:
-        os.environ.setdefault('CC', ENV_MACOS_CC)
-        os.environ.setdefault('CXX', ENV_MACOS_CXX)
-        os.environ.setdefault('CCACHE_DISABLE', ENV_CCACHE_DISABLE)
-        os.environ.setdefault('CMAKE_C_COMPILER', CLANG_PATH)
-        os.environ.setdefault('CMAKE_CXX_COMPILE', CLANG_XX_PATH)
-    else:
-        os.environ.setdefault('CC', ENV_MACOS_CC)
-        os.environ.setdefault('CXX', ENV_MACOS_CXX)
-        os.environ.setdefault('CCACHE_DISABLE', ENV_CCACHE_DISABLE)
+MODULE_DIRECTORY = {
+    'darwin': '~/Library/Application Support',
+    'linux': '~/.local/share',
+}
 
 
-def get_build_variables() -> t.List[str]:
-    architecture: str = platform.machine()
-    default_arguments = ['-DCMAKE_BUILD_TYPE=Release', '-GNinja']
-    if 'arm' == architecture:
-        return ['-DTON_ARCH=', '-Wno-dev', *default_arguments]
-    else:
-        return [*default_arguments]
+def get_ton_node_control_home(*targets: t.Optional[String]) -> Path:
+    if not targets:
+        return Path(TON_NODE_CONTROL_HOME).expanduser()
+    return Path(TON_NODE_CONTROL_HOME, *targets).expanduser()
+
+
+def get_module_directory() -> Path:
+    if TON_NODE_CONTROL_HOME is not None:
+        return get_ton_node_control_home()
+    path: Bytes = os.path.join(
+        os.path.expanduser(MODULE_DIRECTORY[sys.platform]),
+        'ton-node-control',
+    )
+    return Path(path)
+
+
+def get_binary_directory() -> Path:
+    if TON_NODE_CONTROL_HOME is not None:
+        return get_ton_node_control_home('bin')
+    user_base: String = site.getuserbase()
+    binaries_directory = os.path.join(user_base, 'bin')
+    return Path(binaries_directory)
+
+
+def ton_binary_directory() -> Path:
+    module_directory = get_ton_node_control_home()
+    path = os.path.join(module_directory, 'bin')
+    return Path(path)
 
 
 class Builder:
@@ -78,3 +98,9 @@ class Builder:
                 return_code=process.returncode,
             )
         return process
+
+
+class Builder:
+    def __init__(self, path: Path) -> None:
+        self._path: Path = path
+        self._binaries_path: Path = self._path.joinpath('bin')

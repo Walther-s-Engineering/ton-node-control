@@ -5,7 +5,6 @@ import os
 import sys
 
 from _path import MACOS
-from _styling import colorize, string_to_bool, write_styled_stdout
 from _typing import Bool, String
 from _sources import TON_BUILD_REQUIREMENTS
 
