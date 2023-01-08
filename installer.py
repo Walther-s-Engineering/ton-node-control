@@ -56,6 +56,32 @@ INSTALLERS_BY_SYSTEM = Installers(
 
 INSTALLER_META_DATA: InstallerMetadata = getattr(INSTALLERS_BY_SYSTEM, sys.platform)
 
+
+def download_requirement(url: str) -> bytes:
+    request = Request(url, headers={'User-Agent': 'ton-node-control'})
+    with contextlib.closing(urlopen(request)) as response:
+        return response.read()
+
+
+def build_directory_and_module(dependency: str, dependency_data: bytes) -> str:
+    installer_module_path: str = os.path.join(TEMPORARY_DIRECTORY.name, 'installer')
+    with contextlib.suppress(FileExistsError):
+        os.mkdir(installer_module_path)
+    dependency_name: str = os.path.basename(dependency)
+    with open(os.path.join(installer_module_path, dependency_name), 'w+b') as file:
+        file.write(dependency_data)
+    return os.path.basename(file.name).strip('.py')
+
+
+for dependency_url in INSTALLER_META_DATA.dependencies:
+    dependency_data = download_requirement(dependency_url)
+    dependency_module = build_directory_and_module(dependency_url, dependency_data)
+
+file_data: bytes = download_requirement(INSTALLER_META_DATA.link)
+module_name: str = build_directory_and_module(INSTALLER_META_DATA.link, file_data)
+
+module = getattr(__import__(f'installer.{module_name}'), module_name)
+
 FOREGROUND_COLORS: t.Dict[COLOR, Integer] = dict(
     black=30,
     red=31,
@@ -132,32 +158,6 @@ def colorize(style_type: STYLE, text: String) -> String:
 
 def string_to_bool(value: String) -> Bool:
     return value in {'true', '1', 'y', 'yes'}
-
-
-def download_requirement(url: str) -> bytes:
-    request = Request(url, headers={'User-Agent': 'ton-node-control'})
-    with contextlib.closing(urlopen(request)) as response:
-        return response.read()
-
-
-def build_directory_and_module(dependency: str, dependency_data: bytes) -> str:
-    installer_module_path: str = os.path.join(TEMPORARY_DIRECTORY.name, 'installer')
-    with contextlib.suppress(FileExistsError):
-        os.mkdir(installer_module_path)
-    dependency_name: str = os.path.basename(dependency)
-    with open(os.path.join(installer_module_path, dependency_name), 'w+b') as file:
-        file.write(dependency_data)
-    return os.path.basename(file.name).strip('.py')
-
-
-for dependency_url in INSTALLER_META_DATA.dependencies:
-    dependency_data = download_requirement(dependency_url)
-    dependency_module = build_directory_and_module(dependency_url, dependency_data)
-
-file_data: bytes = download_requirement(INSTALLER_META_DATA.link)
-module_name: str = build_directory_and_module(INSTALLER_META_DATA.link, file_data)
-
-module = getattr(__import__(f'installer.{module_name}'), module_name)
 
 
 def main() -> int:
