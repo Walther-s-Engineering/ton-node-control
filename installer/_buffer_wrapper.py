@@ -14,7 +14,8 @@ class BufferWrapper(io.IOBase):
         self.version: String = version
 
     def write(self, text: String | Bytes) -> None:
-        self.installer._install_comment(self.version, text)
+        for line in text.read():
+            self.installer._install_comment(self.version, line)
 
     def fileno(self) -> int:
-        return 1
+        return self.fileno()
