@@ -107,15 +107,7 @@ class Installer:
         self._cursor.clear_line()
         self._write(line)
 
-    def _install_comment(self, version: String, message: String) -> None:
-        self._overwrite(
-            'Installing {} ({}): {}'.format(
-                colorize('info', '"ton-node-control"'),
-                colorize('bold', version),
-                colorize('comment', message),
-            ),
-        )
-
+    def _install_comment(self, version: String, message: String):
 
 class _Installer:
     MEDATA_URL: String = 'https://pypi.org/pypi/ton-node-control/json'
