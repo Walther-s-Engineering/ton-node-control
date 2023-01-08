@@ -19,9 +19,6 @@ import tempfile
 
 from urllib.request import Request, urlopen
 
-from installer.typing import Bool, String, Integer
-from installer.typing import COLOR, OPTION, STYLE
-
 
 class InstallerMetadata(t.NamedTuple):
     link: str
@@ -81,6 +78,10 @@ file_data: bytes = download_requirement(INSTALLER_META_DATA.link)
 module_name: str = build_directory_and_module(INSTALLER_META_DATA.link, file_data)
 
 module = getattr(__import__(f'installer.{module_name}'), module_name)
+
+from installer.typing import Bool, String, Integer  # noqa: E402
+from installer.typing import COLOR, OPTION, STYLE  # noqa: E402
+
 
 FOREGROUND_COLORS: t.Dict[COLOR, Integer] = dict(
     black=30,
