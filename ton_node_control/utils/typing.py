@@ -1,4 +1,5 @@
 import typing as t
 
-String: t.TypeAlias = str
-Integer: t.TypeAlias = int
+Bytes = bytes
+String = str
+Integer = int

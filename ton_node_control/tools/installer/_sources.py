@@ -8,8 +8,6 @@ from pathlib import Path
 
 from installer.typing import String
 
-TON_NODE_CONTROL_HOME: Path = Path(os.getenv('TON_NODE_CONTROL_HOME'))
-
 SOURCES_PATH: t.Dict[String, Path] = {
     'linux': Path('/usr/src'),
     # TODO: Improve this for MacOS
@@ -27,6 +25,11 @@ MODULE_PATH: t.Dict[String, Path] = {
     # TODO: Improve this for MacOS
     'darwin': Path('~/Library/Application Support'),
 }
+
+TON_NODE_CONTROL_HOME: Path = Path(
+    os.getenv('TON_NODE_CONTROL_HOME')
+    or MODULE_PATH[sys.platform].joinpath('ton-node-control')
+)
 
 COMPILER_UPDATE_COMMAND = {
     'linux': '',

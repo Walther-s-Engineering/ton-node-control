@@ -1,7 +1,6 @@
 import sys
 
-from ton_node_control.app import app
-
+from ton_node_control.cli.app import main
 
 if __name__ == '__main__':
-    sys.exit(app())
+    sys.exit(main(standalone_mode=False))

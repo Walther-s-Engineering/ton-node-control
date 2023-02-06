@@ -14,97 +14,10 @@ from urllib.request import Request, urlopen
 
 from installer.compiler import Compiler
 from installer.virtualenv import VirtualEnvironment
-from installer.styling import colorize, is_decorated
-from installer.sources import get_binaries_directory, get_module_directory, get_ton_binaries_directory
+from ton_node_control.tools.installer._styling import colorize, is_decorated
+from ton_node_control.tools.installer._sources import get_binaries_directory, get_module_directory, get_ton_binaries_directory
+from ton_node_control.tools.installer._cursor import Cursor
 from installer.typing import Bytes, String, Integer
-
-
-class Cursor:
-    def __init__(self) -> None:
-        self._output = sys.stdout
-
-    def move_up(self, lines: Integer = 1) -> Cursor:
-        self._output.write(f"\x1b[{lines}A")
-
-        return self
-
-    def move_down(self, lines: Integer = 1) -> Cursor:
-        self._output.write(f"\x1b[{lines}B")
-
-        return self
-
-    def move_right(self, columns: Integer = 1) -> Cursor:
-        self._output.write(f"\x1b[{columns}C")
-
-        return self
-
-    def move_left(self, columns: Integer = 1) -> Cursor:
-        self._output.write(f"\x1b[{columns}D")
-
-        return self
-
-    def move_to_column(self, column: Integer) -> Cursor:
-        self._output.write(f"\x1b[{column}G")
-
-        return self
-
-    def move_to_position(self, column: Integer, row: Integer) -> Cursor:
-        self._output.write(f"\x1b[{row + 1};{column}H")
-
-        return self
-
-    def save_position(self) -> Cursor:
-        self._output.write("\x1b7")
-
-        return self
-
-    def restore_position(self) -> Cursor:
-        self._output.write("\x1b8")
-
-        return self
-
-    def hide(self) -> Cursor:
-        self._output.write("\x1b[?25l")
-
-        return self
-
-    def show(self) -> Cursor:
-        self._output.write("\x1b[?25h\x1b[?0c")
-
-        return self
-
-    def clear_line(self) -> Cursor:
-        """
-        Clears all the output from the current line.
-        """
-        self._output.write("\x1b[2K")
-
-        return self
-
-    def clear_line_after(self) -> Cursor:
-        """
-        Clears all the output from the current line after the current position.
-        """
-        self._output.write("\x1b[K")
-
-        return self
-
-    def clear_output(self) -> Cursor:
-        """
-        Clears all the output from the cursors' current position
-        to the end of the screen.
-        """
-        self._output.write("\x1b[0J")
-
-        return self
-
-    def clear_screen(self) -> Cursor:
-        """
-        Clears the entire screen.
-        """
-        self._output.write("\x1b[2J")
-
-        return self
 
 
 class Installer:
@@ -123,6 +36,9 @@ class Installer:
 
     def __init__(
         self,
+        /,
+        cursor: Cursor,
+        *,
         version: t.Optional[String] = None,
         ton_version: t.Optional[String] = None,
     ) -> None:

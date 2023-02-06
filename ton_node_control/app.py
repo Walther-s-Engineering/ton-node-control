@@ -30,6 +30,5 @@ def exit_callback(context, parameter, value) -> None:
 )
 def app(interactive: bool = False) -> None:
     if interactive is True:
-        raise NotImplementedError
-    ton_node_control.interactive_app.run()
+        ton_node_control.interactive_app.run()
 
