@@ -4,8 +4,8 @@ import subprocess
 from pathlib import Path
 
 from installer.builder import Builder
-from installer.sources import
 # TODO: Complete arguments getter based on system with dict trick in source.py file
+
 
 class Compiler(Builder):
     def __init__(self, path: Path) -> None:
