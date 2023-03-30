@@ -10,6 +10,10 @@ from ton_node_control.utils.typing import Integer
 
 main = click.Group()
 wallet_commands = click.Group()
+cmds = click.CommandCollection(
+    sources=[main, wallet_commands]
+)
+
 cursor = Cursor()
 
 
@@ -24,3 +28,8 @@ def installer() -> Integer:
     _installer = Installer(cursor)
     _installer.install()
     return 1
+
+
+@wallet_commands.command
+def test_wallet_command():
+    pass
